@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cat Wild - ดึงข้อมูลเลขปิด</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 20px;
+            color: #1f2937;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h2 {
+            font-size: 18px;
+            margin-top: 0;
+            color: #111827;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+        button {
+            width: 100%;
+            background-color: #10b981;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background-color: #059669;
+        }
+        .result-box {
+            margin-top: 20px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            white-space: pre-line;
+            font-family: monospace;
+            font-size: 14px;
+            min-height: 60px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Cat Wild - จัดการเลขปิด</h2>
+    <p style="font-size: 13px; color: #6b7280;">วางข้อความที่คัดลอกมาจากหน้าเว็บสล๊อตเพื่อจัดรูปแบบ</p>
+    
+    <textarea id="rawInput" placeholder="วางข้อความทั้งหมดที่นี่..."></textarea>
+    
+    <button onclick="processText()">ประมวลผลและคัดลอก</button>
+
+    <div class="result-box" id="outputBox">ผลลัพธ์จะแสดงตรงนี้...</div>
+</div>
+
+<script>
+    function processText() {
+        const text = document.getElementById('rawInput').value;
+        if (!text.trim()) {
+            alert('กรุณาวางข้อความก่อนครับ');
+            return;
+        }
+
+        // ค้นหาและทำความสะอาดชื่อรายการ
+        let titleName = '';
+        const lines = text.split('\n');
+        for (let line of lines) {
+            let t = line.trim();
+            if (t && !t.includes('รวม') && !t.includes('บาท') && !t.includes('เลขมาแรง') && !t.includes('บน') && !t.includes('ล่าง')) {
+                t = t.replace(/\[.*?\]/g, '')
+                     .replace(/หวย/g, '')
+                     .replace(/\d{1,2}[-/\.]\d{1,2}[-/\.]\d{2,4}/g, '')
+                     .replace(/\s+/g, ' ')
+                     .trim();
+                if (t && t.length > 1) {
+                    titleName = t;
+                    break;
+                }
+            }
+        }
+
+        // ค้นหาตัวเลข บน / ล่าง
+        let top2 = '-';
+        let bottom2 = '-';
+
+        for (let i = 0; i < lines.length; i++) {
+            let l = lines[i];
+            if (l.includes('2 ตัวบน')) {
+                // ดึงบรรทัดถัดไปหรือข้อความในบรรทัดเดียวกัน
+                if (lines[i+1]) top2 = lines[i+1].trim();
+            }
+            if (l.includes('2 ตัวล่าง')) {
+                if (lines[i+1]) bottom2 = lines[i+1].trim();
+            }
+        }
+
+        let resultLines = [];
+        if (titleName) resultLines.push(titleName);
+        resultLines.push(`บน ${top2}`);
+        resultLines.push(`ล่าง ${bottom2}`);
+
+        const finalResult = resultLines.join('\n');
+        document.getElementById('outputBoxinnerText' in document.createElement('div') ? 'innerText' : 'textContent') = finalResult;
+        document.getElementById('outputBox').innerText = finalResult;
+
+        // คัดลอกลง Clipboard อัตโนมัติ
+        navigator.clipboard.writeText(finalResult).then(() => {
+            alert('คัดลอกสำเร็จ!\n\n' + finalResult);
+        }).catch(err => {
+            console.error('Copy failed', err);
+        });
+    }
+</script>
+
+</body>
+</html>
